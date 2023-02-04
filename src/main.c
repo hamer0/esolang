@@ -4,40 +4,18 @@
 #include <sys/stat.h>
 #include <ctype.h>
 
-#include "./include/main.h"
-#include "./include/strutil.h"
-
-#define MAX_STACK 255                                               // max stack is 255                                      
+#include "../include/main.h"
+#include "../include/strutil.h"
+#include "../include/stack.h"
+                                
 #define DEFAULT_LIST_CAP 8
 #define byteMask(from, to) ((0xff >> from) & ~(0xff >> (to + 1)))   // mask of 1s between given value
 
-StackNode stack[MAX_STACK];
-StackNode* stackPtr = &stack[0];
+FILE* fp;
 
 SkipPairList comments;
 SkipPairList blocks;
 SkipPairList loopBlocks;
-
-
-void pushStack(char c, int index) {
-    if (stackPtr == &stack[MAX_STACK]) {
-        printf("Stack Overflow!\nMax stack %d exceeded!", MAX_STACK);
-        exit(EXIT_FAILURE);
-    }
-
-    stackPtr->c = c;
-    stackPtr->index = index;
-    stackPtr++;
-}
-
-void popStackPair() {
-    if (stackPtr - 1 == &stack[0]) {
-        printf("Stack Underflow!\n Stack can not be popped!");
-        exit(EXIT_FAILURE);
-    }
-
-    stackPtr -= 2;
-}
 
 void skipPairList_add(SkipPairList* list, SkipPair pair) {
     if (list->size == list->cap) {
@@ -56,7 +34,7 @@ void skipPairList_add(SkipPairList* list, SkipPair pair) {
     list->pairs[list->size++] = pair;
 }
 
-SkipPairList pairMatchingChars(char open, char close, FILE* fp) { // saves the indexes of matching chars given the open and close char e.g. {} () ""
+SkipPairList pairMatchingChars(char open, char close) { // saves the indexes of matching chars given the open and close char e.g. {} () ""
     fseek(fp, 0, SEEK_SET);
     char c;
 
@@ -65,11 +43,14 @@ SkipPairList pairMatchingChars(char open, char close, FILE* fp) { // saves the i
     list.size = 0;
     list.cap = DEFAULT_LIST_CAP;
 
-    for (c = fgetc(fp); c != EOF; c = fgetc(fp)) { // strange for loop lol
+    emptyStack();
+
+    for (c = fgetc(fp); c != EOF; c = fgetc(fp)) {
         if (c == open || c == close) pushStack(c, ftell(fp) - 1);
-        if((stackPtr-1)->c == close && (stackPtr-2)->c == open) {
-            skipPairList_add(&list, (SkipPair){(stackPtr-2)->index, (stackPtr-1)->index});
-            popStackPair();
+        if(checkStackPair(open, close)) { // if top 2 items match
+            StackNode* closeNode = popStack();
+            StackNode* openNode = popStack();
+            skipPairList_add(&list, (SkipPair){openNode->index, closeNode->index});
         }
     }
 
@@ -116,9 +97,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    FILE *fp;
     char c;
-    int depth = 0;
 
     char memoryBlock[] = {0x00, 0x00, 0x00, 0x00};
 
@@ -128,23 +107,27 @@ int main(int argc, char *argv[]) {
     fp = fopen(argv[1], "r");
 
     // Preprocess step
-    comments = pairMatchingChars('"', '"', fp);     // Get comments first as they may impact other pairs e.g. if a bracket is commented out
-    blocks = pairMatchingChars('{', '}', fp);
-    loopBlocks = pairMatchingChars('(', ')', fp);
-    
+    comments = pairMatchingChars('"', '"');     // Get comments first as they may impact other pairs e.g. if a bracket is commented out
+    blocks = pairMatchingChars('{', '}');
+    loopBlocks = pairMatchingChars('(', ')');
+
+    for(int i=0; i<comments.size; i++) {
+        printf("Pair at %d:%d\n", comments.pairs[i].start, comments.pairs[i].end);
+    }
+
     // Interpret step
     fseek(fp, 0, SEEK_SET);
 
     while (1)
     {
-        c = fgetc(fp);
+        c = nextChar();
 
         if (c == '\0' || c == EOF) break;
         if (isspace(c)) continue;
 
         switch (c) {
             case '"':
-                readUntilChar('"', fp);
+                readUntilChar('"');
                 break;
             case '>':
                 shiftWindow(&wli, &wlb, 1);
@@ -178,9 +161,14 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 
-void readUntilChar(char match, FILE *fp) {
+char nextChar() {
+    char c = fgetc(fp);
+    return c;
+}
+
+void readUntilChar(char match) {
     char current;
-    while(current = fgetc(fp) != match) {
+    while(current = nextChar() != match) {
         if (feof(fp)) {
             printf("\n\nEOF Reached!\nExpected to read a %c", match);
             exit(EXIT_FAILURE);

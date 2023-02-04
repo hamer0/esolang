@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -c -std=c99 -g
 LDFLAGS = -g
 SRC = $(wildcard src/*.c)
-HDR = $(wildcard src/include/*.h)
+HDR = $(wildcard include/*.h)
 OBJ = $(SRC:.c=.o)
 EXEC = zxb1
 
