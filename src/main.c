@@ -126,56 +126,34 @@ void decrementWindow(int* index, char** byte) {
     }
 }
 
-void setOrClearWindow(int set) {
-    // Set/Clear from window wlb[wli] : wrb[wri]
-    char* ptr = wlb;
+void setOrClearWindow(int set) { // Set/Clear from window wlb[wli] : wrb[wri]
+    int from = 0;
+    int to = 7;
 
-    while (1) {
-        if (ptr == wlb && ptr == wrb) {
-            set ? setBits(ptr, wli, wri) : clearBits(ptr, wli, wri);
-            break;
-        }
+    for(char* ptr = wlb; ptr <= wrb; ptr++) {
+        if (ptr == wlb) from = wli;
+        if (ptr == wrb) to = wri;
 
-        if (ptr == wlb) {   // Only set/clear from index
-            set ? setBits(ptr, wli, 7) : clearBits(ptr, wli, 7);
-            continue;
-        }
-
-        if (ptr == wrb) {   // Only set/clear upto index
-            set ? setBits(ptr, 0, wri) : clearBits(ptr, 0, wri);
-            break;
-        }
-
-        *ptr = set ? 0xff : 0x00;
-
-        ptr++;
+        set ? setBits(ptr, from, to) : clearBits(ptr, from, to);
     }
 }
 
 int getWindowValue() {
     char* ptr = wlb;
-
     int val = 0;
 
     while(1) {
         val << 8;
     
-        if (ptr == wlb) {
-            val += (*ptr & ~byteMask(0, wli));
-        } else {
-            val += *ptr;
-        }
+        if (ptr == wlb) val += (*ptr & ~byteMask(0, wli));
+        else val += *ptr;
         
-        if (ptr == wrb) {
-            break;
-        }        
+        if (ptr == wrb) break;
 
         ptr--;
     }
 
-    val >> (7 - wri);
-
-    return val;
+    return val >> (7 - wri);
 }
 
 void setBits(char* byte, int from, int to) {
