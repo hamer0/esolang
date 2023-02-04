@@ -16,6 +16,7 @@ A goal of this language is to make the interpreter small without making it unrea
 - [x] `<` shrink window 1 bit
 - [x] `/` set window
 - [x] `\` clear window
+- [x] `~` flip bits in window
 - [x] `@` output as char
 - [ ] `#` output binary
 - [ ] `}` Jump back to matching `{`
