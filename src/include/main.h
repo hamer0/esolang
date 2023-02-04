@@ -5,8 +5,7 @@
 #define EXE "zxb1"
 
 void readUntilChar(char match, FILE *fp);
-void incrementWindow(int* index, char** byte);
-void decrementWindow(int* index, char** byte);
+void shiftWindow(int* index, char** byte, int direction);
 void windowOperator(char operator);
 int getWindowValue();
 

@@ -72,18 +72,18 @@ int main(int argc, char *argv[]) {
                 readUntilChar('"', fp);
                 break;
             case '+':
-                incrementWindow(&wli, &wlb);
-                incrementWindow(&wri, &wrb);
+                shiftWindow(&wli, &wlb, 1);
+                shiftWindow(&wri, &wrb, 1);
                 break;
             case '-':
-                decrementWindow(&wli, &wlb);
-                decrementWindow(&wri, &wrb);
+                shiftWindow(&wli, &wlb, -1);
+                shiftWindow(&wri, &wrb, -1);
                 break;
             case '>':
-                incrementWindow(&wri, &wrb);
+                shiftWindow(&wri, &wrb, 1);
                 break;
             case '<':
-                decrementWindow(&wri, &wrb);
+                shiftWindow(&wri, &wrb, -1);
                 break;
             case '/':
             case '\\':
@@ -114,14 +114,10 @@ void readUntilChar(char match, FILE *fp) {
     }
 }
 
-void incrementWindow(int* index, char** byte) {
-    *index = (*index + 1) & 7;                                      // increment index value (& 7 wraps if value exceeds 7)
-    if (*index == 0) (*byte)++;                                     // if index is 0 (has been wrapped) then increment byte pointer
-}
-
-void decrementWindow(int* index, char** byte) {
-    *index = (*index - 1) & 7;                                      // decrement index value (& 7 wraps if value exceeds 0)
-    if (*index == 7) (*byte)--;                                     // if index is 7 (has been wrapped) then decrement byte pointer
+void shiftWindow(int* index, char** byte, int direction) {
+    *index = (*index + direction) & 7;                              // shift index value (& 7 wraps if value exceeds 7)
+    if (*index == 0 && direction > 0) (*byte)++;                    // if index is 0 (has been wrapped) then increment byte pointer
+    if (*index == 7 && direction < 0) (*byte)--;                    // if index is 7 (has been wrapped) then increment byte pointer
 }
 
 void windowOperator(char operator) {
