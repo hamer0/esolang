@@ -7,7 +7,74 @@
 #include "./include/main.h"
 #include "./include/strutil.h"
 
-#define byteMask(from, to) ((0xff >> from) & ~(0xff >> (to + 1)))   // mask of 1s between given values
+#define MAX_STACK 255                                               // max stack is 255                                      
+#define DEFAULT_LIST_CAP 8
+#define byteMask(from, to) ((0xff >> from) & ~(0xff >> (to + 1)))   // mask of 1s between given value
+
+StackNode stack[MAX_STACK];
+StackNode* stackPtr = &stack[0];
+
+SkipPairList comments;
+SkipPairList blocks;
+SkipPairList loopBlocks;
+
+
+void pushStack(char c, int index) {
+    if (stackPtr == &stack[MAX_STACK]) {
+        printf("Stack Overflow!\nMax stack %d exceeded!", MAX_STACK);
+        exit(EXIT_FAILURE);
+    }
+
+    stackPtr->c = c;
+    stackPtr->index = index;
+    stackPtr++;
+}
+
+void popStackPair() {
+    if (stackPtr - 1 == &stack[0]) {
+        printf("Stack Underflow!\n Stack can not be popped!");
+        exit(EXIT_FAILURE);
+    }
+
+    stackPtr -= 2;
+}
+
+void skipPairList_add(SkipPairList* list, SkipPair pair) {
+    if (list->size == list->cap) {
+        int new_capacity = list->cap * 2;
+        SkipPair* new_pairs = realloc(list->pairs, sizeof(SkipPair) * new_capacity);
+
+        if (new_pairs == NULL) {
+            printf("Memory Error: Failed to resize the skip pair list\n");
+            exit(EXIT_FAILURE);
+        }
+
+        list->pairs = new_pairs;
+        list->cap = new_capacity;
+    }
+
+    list->pairs[list->size++] = pair;
+}
+
+SkipPairList pairMatchingChars(char open, char close, FILE* fp) { // saves the indexes of matching chars given the open and close char e.g. {} () ""
+    fseek(fp, 0, SEEK_SET);
+    char c;
+
+    SkipPairList list;
+    list.pairs = malloc(sizeof(SkipPair) * DEFAULT_LIST_CAP);
+    list.size = 0;
+    list.cap = DEFAULT_LIST_CAP;
+
+    for (c = fgetc(fp); c != EOF; c = fgetc(fp)) { // strange for loop lol
+        if (c == open || c == close) pushStack(c, ftell(fp) - 1);
+        if((stackPtr-1)->c == close && (stackPtr-2)->c == open) {
+            skipPairList_add(&list, (SkipPair){(stackPtr-2)->index, (stackPtr-1)->index});
+            popStackPair();
+        }
+    }
+
+    return list;
+}
 
 char* wlb;
 char* wrb;
@@ -60,6 +127,14 @@ int main(int argc, char *argv[]) {
 
     fp = fopen(argv[1], "r");
 
+    // Preprocess step
+    comments = pairMatchingChars('"', '"', fp);     // Get comments first as they may impact other pairs e.g. if a bracket is commented out
+    blocks = pairMatchingChars('{', '}', fp);
+    loopBlocks = pairMatchingChars('(', ')', fp);
+    
+    // Interpret step
+    fseek(fp, 0, SEEK_SET);
+
     while (1)
     {
         c = fgetc(fp);
@@ -100,7 +175,6 @@ int main(int argc, char *argv[]) {
     }
 
     fclose(fp);
-
     return EXIT_SUCCESS;
 }
 
@@ -139,7 +213,7 @@ void windowOperator(char operator) {
 }
 
 int getWindowValue() {
-    int val = (*wlb & byteMask(wli, 7));                           // Get value of the bits in the left byte from the index
+    int val = (*wlb & byteMask(wli, 7));                            // Get value of the bits in the left byte from the index
 
     for(char* ptr = wlb + 1; ptr <= wrb; ptr++) {                   // iterate for each byte upto window right pointer
         val << 8;                                                   // shift 1 byte left

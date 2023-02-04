@@ -1,7 +1,7 @@
 # Mini Esolang
 A simple esolang based on single character instructions that manipulate a sliding window.
 
-A goal of this language is to make the interpreter small without making it unreadable.
+A goal of this language is to make the interpreter small without making it unreadable. I'm not too fussy about the time complexity of the interpreter, I just want to make the code as concise as I can. For this reason there are steps could be done more efficiently.
 
 ## Notes
 - Currently only has 32 bits of memory
