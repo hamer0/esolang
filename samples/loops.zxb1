@@ -1,0 +1,8 @@
+0>1>0>0>0>0>0>0         " init 8 bits of a char "
+<+<+<+<+<+<+            " Select the last 6 bits "
+(
+    /                   " increment "
+    <+<+@               " extend and output full 8 bits "
+    ->->                " shrink to select last 6 bits "
+    ?                   " Skip if 0 "
+)                       " repeat "

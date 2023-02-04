@@ -10,17 +10,21 @@ A goal of this language is to make the interpreter small without making it unrea
 
 ## Instruction Set
 
-- [x] `+` increment window
-- [x] `-` decrement window
-- [x] `>` extend window 1 bit
-- [x] `<` shrink window 1 bit
-- [x] `/` set window
-- [x] `\` clear window
+- [x] `>` shift window right
+- [x] `<` shift window left
+- [x] `+` grow window 1 bit
+- [x] `-` shrink window 1 bit
+- [x] `1` set window
+- [x] `0` clear window
 - [x] `~` flip bits in window
 - [x] `@` output as char
 - [ ] `#` output binary
-- [ ] `}` Jump back to matching `{`
-- [ ] `?` skip next char if window = 0
+- [x] `?` skip next char if window = 0
+
+- [ ] `(` loop block begin
+- [ ] `)` loop block end
+- [ ] `{` block begin
+- [ ] `}` block end
 
 ## Window
 
@@ -32,32 +36,32 @@ Given a 16 bit memory space, the window could look like this:
 ```
 where `[]` the encapsulated bits by the 2 pointers. See how different commands affect the window:
 
-**Increment** `+`
+**Shift Right** `>`
 Shifts the window 1 bit the right
 ```
 0000 0[000 0]000 0000
 ```
 
-**Decrement** `-`
+**Shift Left** `<`
 Shifts the window 1 bit the left
 
 ```
 000[0 000]0 0000 0000
 ```
 
-**Expand** `>`
+**Grow** `+`
 Expands the window (from right) 1 bit
 ```
 0000 [0000 0]000 0000
 ```
 
-**Shrink** `<`
+**Shrink** `-`
 Shrinks the window (from right) 1 bit
 ```
 0000 [000]0 0000 0000
 ```
 
-**Set** `/`
+**Set** `1`
 Sets all bits within the window
 ```
 0000 [1111] 0000 0000

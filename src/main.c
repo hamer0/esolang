@@ -71,22 +71,22 @@ int main(int argc, char *argv[]) {
             case '"':
                 readUntilChar('"', fp);
                 break;
-            case '+':
+            case '>':
                 shiftWindow(&wli, &wlb, 1);
                 shiftWindow(&wri, &wrb, 1);
                 break;
-            case '-':
+            case '<':
                 shiftWindow(&wli, &wlb, -1);
                 shiftWindow(&wri, &wrb, -1);
                 break;
-            case '>':
+            case '+':
                 shiftWindow(&wri, &wrb, 1);
                 break;
-            case '<':
+            case '-':
                 shiftWindow(&wri, &wrb, -1);
                 break;
-            case '/':
-            case '\\':
+            case '1':
+            case '0':
             case '~':
                 windowOperator(c);
                 break;
@@ -130,8 +130,8 @@ void windowOperator(char operator) {
         if (ptr == wrb) to = wri;                                   // if byte is right pointer (can be both) to is right pointer index
 
         switch(operator) {                                          // perform operation on byte between from/to bits
-            case '/': *ptr |= byteMask(from, to); break;            // set bits
-            case '\\': *ptr &= ~byteMask(from, to); break;          // clear bits
+            case '1': *ptr |= byteMask(from, to); break;            // set bits
+            case '0': *ptr &= ~byteMask(from, to); break;           // clear bits
             case '~': *ptr ^= byteMask(from, to); break;            // flip bits
             default: break;
         }
