@@ -139,7 +139,7 @@ void windowOperator(char operator) {
 }
 
 int getWindowValue() {
-    int val = (*wlb & ~byteMask(0, wli));                           // initialise value with byte AND byte mask to get the correct bits from index
+    int val = (*wlb & byteMask(wli, 7));                           // Get value of the bits in the left byte from the index
 
     for(char* ptr = wlb + 1; ptr <= wrb; ptr++) {                   // iterate for each byte upto window right pointer
         val << 8;                                                   // shift 1 byte left
