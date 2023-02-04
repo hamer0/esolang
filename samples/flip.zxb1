@@ -1,0 +1,6 @@
+" outputs xG"
+" flipping part of a character to change its value"
+" 01 111000 'x' "
+" 01 000111 'G' "
+
++/+>>/>>>-->>@<<++~-->>@

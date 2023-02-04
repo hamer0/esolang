@@ -8,10 +8,12 @@ void readUntilChar(char match, FILE *fp);
 void incrementWindow(int* index, char** byte);
 void decrementWindow(int* index, char** byte);
 void setOrClearWindow(int set);
+void flipWindow();
 int getWindowValue();
 
 void setBits(char* byte, int from, int to);
 void clearBits(char* byte, int from, int to);
+void flipBits(char* byte, int from, int to);
 char byteMask(int from, int to);
 
 

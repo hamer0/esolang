@@ -89,6 +89,9 @@ int main(int argc, char *argv[]) {
             case '\\':
                 setOrClearWindow(0);
                 break;
+            case '~':
+                flipWindow();
+                break;
             case '@':
                 printf("%c", getWindowValue());
                 break;
@@ -139,6 +142,19 @@ void setOrClearWindow(int set) { // Set/Clear from window wlb[wli] : wrb[wri]
     }
 }
 
+void flipWindow() {
+    int from, to;
+    for(char* ptr = wlb; ptr <= wrb; ptr++) {
+        from = 0;                                                  
+        to = 7;
+
+        if (ptr == wlb) from = wli;                                 
+        if (ptr == wrb) to = wri;                                   
+
+        flipBits(ptr, from, to); 
+    }
+}
+
 int getWindowValue() {
     int val = (*wlb & ~byteMask(0, wli));                           // initialise value with byte AND byte mask to get the correct bits from index
 
@@ -156,6 +172,11 @@ void setBits(char* byte, int from, int to) {
 
 void clearBits(char* byte, int from, int to) {
     *byte &= ~byteMask(from, to);
+}
+
+void flipBits(char* byte, int from, int to) {
+    char mask = byteMask(from, to);
+    *byte = (*byte & ~mask) | (~(*byte) & mask);
 }
 
 char byteMask(int from, int to) {   //Mask of 1s between indexes given
