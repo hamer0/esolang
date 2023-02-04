@@ -114,24 +114,15 @@ void readUntilChar(char match, FILE *fp) {
 }
 
 void incrementWindow(int* index, char** byte) {
-    int val = *index + 1;
-    
-    if (val >= 8) {
-        *index = 0;
-        (*byte)++;
-    } else {
-        *index = val;
-    }
+    *index = (*index + 1) % 8;
+    if (*index == 0) (*byte)++;
 }
 
 void decrementWindow(int* index, char** byte) {
-    int val = *index - 1;
-    
-    if (val < 0) {
+    (*index)--;
+    if (*index < 0) {
         *index = 7;
         (*byte)--;
-    } else {
-        *index = val;
     }
 }
 
@@ -195,8 +186,6 @@ void clearBits(char* byte, int from, int to) {
     *byte &= ~byteMask(from, to);
 }
 
-char byteMask(int from, int to) {
-    char maskL = 0xff >> from;
-    char maskR = ~(0xff >> (to + 1));
-    return maskL & maskR;
+char byteMask(int from, int to) {   //Mask of 1s between indexes given
+    return (0xff >> from) & ~(0xff >> (to + 1));
 }
