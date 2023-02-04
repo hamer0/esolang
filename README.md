@@ -34,7 +34,7 @@ Given a 16 bit memory space, the window could look like this:
 ```
 0000 [0000] 0000 0000
 ```
-where `[]` the encapsulated bits by the 2 pointers. See how different commands affect the window:
+where `[]` surrounds the encapsulated bits by the 2 pointers. See how different instructions affect the window:
 
 **Shift Right** `>`
 Shifts the window 1 bit the right
