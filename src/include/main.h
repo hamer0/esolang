@@ -7,8 +7,7 @@
 void readUntilChar(char match, FILE *fp);
 void incrementWindow(int* index, char** byte);
 void decrementWindow(int* index, char** byte);
-void setOrClearWindow(int set);
-void flipWindow();
+void windowOperator(char operator);
 int getWindowValue();
 
 void setBits(char* byte, int from, int to);

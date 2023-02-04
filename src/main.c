@@ -84,13 +84,9 @@ int main(int argc, char *argv[]) {
                 decrementWindow(&wri, &wrb);
                 break;
             case '/':
-                setOrClearWindow(1);
-                break;
             case '\\':
-                setOrClearWindow(0);
-                break;
             case '~':
-                flipWindow();
+                windowOperator(c);
                 break;
             case '@':
                 printf("%c", getWindowValue());
@@ -129,7 +125,7 @@ void decrementWindow(int* index, char** byte) {
     }
 }
 
-void setOrClearWindow(int set) { // Set/Clear from window wlb[wli] : wrb[wri]
+void windowOperator(char operator) {
     int from, to;
     for(char* ptr = wlb; ptr <= wrb; ptr++) {                       // iterate for each byte between left and right window pointers
         from = 0;                                                   // default from/to is 0/7
@@ -138,20 +134,12 @@ void setOrClearWindow(int set) { // Set/Clear from window wlb[wli] : wrb[wri]
         if (ptr == wlb) from = wli;                                 // if byte is left pointer from is the left pointer index
         if (ptr == wrb) to = wri;                                   // if byte is right pointer (can be both) to is right pointer index
 
-        set ? setBits(ptr, from, to) : clearBits(ptr, from, to);    // set/clear bits between ranges
-    }
-}
-
-void flipWindow() {
-    int from, to;
-    for(char* ptr = wlb; ptr <= wrb; ptr++) {
-        from = 0;                                                  
-        to = 7;
-
-        if (ptr == wlb) from = wli;                                 
-        if (ptr == wrb) to = wri;                                   
-
-        flipBits(ptr, from, to); 
+        switch(operator) {                                          // perform operation on byte between from/to bits
+            case '/': setBits(ptr, from, to); break;
+            case '\\': clearBits(ptr, from, to); break;
+            case '~': flipBits(ptr, from, to); break;
+            default: break;
+        }
     }
 }
 
