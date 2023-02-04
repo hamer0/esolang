@@ -7,6 +7,8 @@
 #include "./include/main.h"
 #include "./include/strutil.h"
 
+#define byteMask(from, to) ((0xff >> from) & ~(0xff >> (to + 1)))   // mask of 1s between given values
+
 char* wlb;
 char* wrb;
 
@@ -113,16 +115,13 @@ void readUntilChar(char match, FILE *fp) {
 }
 
 void incrementWindow(int* index, char** byte) {
-    *index = (*index + 1) % 8;                                      // increment index value (mod 8 to keep in range of a byte)
-    if (*index == 0) (*byte)++;                                     // if index is 0 (has been reset) then increment byte pointer
+    *index = (*index + 1) & 7;                                      // increment index value (& 7 wraps if value exceeds 7)
+    if (*index == 0) (*byte)++;                                     // if index is 0 (has been wrapped) then increment byte pointer
 }
 
 void decrementWindow(int* index, char** byte) {
-    (*index)--;                                                     // decrement index value
-    if (*index < 0) {                                               // if index value now < 0 ...
-        *index = 7;                                                 //  reset to 7
-        (*byte)--;                                                  //  decrement byte pointer
-    }
+    *index = (*index - 1) & 7;                                      // decrement index value (& 7 wraps if value exceeds 0)
+    if (*index == 7) (*byte)--;                                     // if index is 7 (has been wrapped) then decrement byte pointer
 }
 
 void windowOperator(char operator) {
@@ -135,9 +134,9 @@ void windowOperator(char operator) {
         if (ptr == wrb) to = wri;                                   // if byte is right pointer (can be both) to is right pointer index
 
         switch(operator) {                                          // perform operation on byte between from/to bits
-            case '/': setBits(ptr, from, to); break;
-            case '\\': clearBits(ptr, from, to); break;
-            case '~': flipBits(ptr, from, to); break;
+            case '/': *ptr |= byteMask(from, to); break;            // set bits
+            case '\\': *ptr &= ~byteMask(from, to); break;          // clear bits
+            case '~': *ptr ^= byteMask(from, to); break;            // flip bits
             default: break;
         }
     }
@@ -152,21 +151,4 @@ int getWindowValue() {
     }
 
     return val >> (7 - wri);                                        // shift right to remove excess upto index in right window byte
-}
-
-void setBits(char* byte, int from, int to) {
-    *byte |= byteMask(from, to);
-}
-
-void clearBits(char* byte, int from, int to) {
-    *byte &= ~byteMask(from, to);
-}
-
-void flipBits(char* byte, int from, int to) {
-    char mask = byteMask(from, to);
-    *byte = (*byte & ~mask) | (~(*byte) & mask);
-}
-
-char byteMask(int from, int to) {   //Mask of 1s between indexes given
-    return (0xff >> from) & ~(0xff >> (to + 1));
 }
