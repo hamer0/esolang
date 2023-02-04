@@ -7,55 +7,11 @@
 #include "../include/main.h"
 #include "../include/strutil.h"
 #include "../include/stack.h"
-                                
-#define DEFAULT_LIST_CAP 8
+#include "../include/pairs.h"
+
 #define byteMask(from, to) ((0xff >> from) & ~(0xff >> (to + 1)))   // mask of 1s between given value
 
 FILE* fp;
-
-SkipPairList comments;
-SkipPairList blocks;
-SkipPairList loopBlocks;
-
-void skipPairList_add(SkipPairList* list, SkipPair pair) {
-    if (list->size == list->cap) {
-        int new_capacity = list->cap * 2;
-        SkipPair* new_pairs = realloc(list->pairs, sizeof(SkipPair) * new_capacity);
-
-        if (new_pairs == NULL) {
-            printf("Memory Error: Failed to resize the skip pair list\n");
-            exit(EXIT_FAILURE);
-        }
-
-        list->pairs = new_pairs;
-        list->cap = new_capacity;
-    }
-
-    list->pairs[list->size++] = pair;
-}
-
-SkipPairList pairMatchingChars(char open, char close) { // saves the indexes of matching chars given the open and close char e.g. {} () ""
-    fseek(fp, 0, SEEK_SET);
-    char c;
-
-    SkipPairList list;
-    list.pairs = malloc(sizeof(SkipPair) * DEFAULT_LIST_CAP);
-    list.size = 0;
-    list.cap = DEFAULT_LIST_CAP;
-
-    emptyStack();
-
-    for (c = fgetc(fp); c != EOF; c = fgetc(fp)) {
-        if (c == open || c == close) pushStack(c, ftell(fp) - 1);
-        if(checkStackPair(open, close)) { // if top 2 items match
-            StackNode* closeNode = popStack();
-            StackNode* openNode = popStack();
-            skipPairList_add(&list, (SkipPair){openNode->index, closeNode->index});
-        }
-    }
-
-    return list;
-}
 
 char* wlb;
 char* wrb;
@@ -63,26 +19,23 @@ char* wrb;
 int wli = 0;
 int wri = 0;
 
+SkipPairList comments;
+SkipPairList blocks;
+SkipPairList loopBlocks;
+
 int main(int argc, char *argv[]) {
-
-
-    // Validate against too few args
-    if (argc < 2) {
+    if (argc < 2) { // Validate against too few args
         printf("\n\nToo few arguments!\nUsage: %s <filepath>", EXE);
         return EXIT_FAILURE;
     }
 
-    // Validate against too many args
-    // (Will have to remove later if flags are added)
-    if (argc > 2) {
+    
+    if (argc > 2) { // Validate against too many args
         printf("\n\nToo many arguments!\nUsage: %s <filepath>", EXE);
         return EXIT_FAILURE;
     }
 
-    /*
-    *   Validate against incorrect file extension
-    */
-    if (!strendsw(argv[1], EXT)) {
+    if (!strendsw(argv[1], EXT)) { // Validate against incorrect file extension
         printf("\n\nArgument Error!\nFile must be a '%s' file. Got a '%s' file instead!", EXT, strext(argv[1]));
         return EXIT_FAILURE;
     }
@@ -98,7 +51,6 @@ int main(int argc, char *argv[]) {
     }
 
     char c;
-
     char memoryBlock[] = {0x00, 0x00, 0x00, 0x00};
 
     wlb = &memoryBlock[0];
@@ -209,4 +161,22 @@ int getWindowValue() {
     }
 
     return val >> (7 - wri);                                        // shift right to remove excess upto index in right window byte
+}
+
+SkipPairList pairMatchingChars(char open, char close) { // saves the indexes of matching chars given the open and close char e.g. {} () ""
+    fseek(fp, 0, SEEK_SET);
+
+    SkipPairList list = skipPairList_create();
+    emptyStack();
+
+    for (char c = fgetc(fp); c != EOF; c = fgetc(fp)) {
+        if (c == open || c == close) pushStack(c, ftell(fp) - 1);
+        if(checkStackPair(open, close)) { // if top 2 items match
+            StackNode* closeNode = popStack();
+            StackNode* openNode = popStack();
+            skipPairList_add(&list, (SkipPair){openNode->index, closeNode->index});
+        }
+    }
+
+    return list;
 }
