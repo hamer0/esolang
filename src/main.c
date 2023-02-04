@@ -127,10 +127,11 @@ void decrementWindow(int* index, char** byte) {
 }
 
 void setOrClearWindow(int set) { // Set/Clear from window wlb[wli] : wrb[wri]
-    int from = 0;
-    int to = 7;
-
+    int from, to;
     for(char* ptr = wlb; ptr <= wrb; ptr++) {
+        from = 0;
+        to = 7;
+
         if (ptr == wlb) from = wli;
         if (ptr == wrb) to = wri;
 
@@ -139,18 +140,11 @@ void setOrClearWindow(int set) { // Set/Clear from window wlb[wli] : wrb[wri]
 }
 
 int getWindowValue() {
-    char* ptr = wlb;
-    int val = 0;
+    int val = (*wlb & ~byteMask(0, wli));
 
-    while(1) {
+    for(char* ptr = wlb + 1; ptr <= wrb; ptr++) {
         val << 8;
-    
-        if (ptr == wlb) val += (*ptr & ~byteMask(0, wli));
-        else val += *ptr;
-        
-        if (ptr == wrb) break;
-
-        ptr--;
+        val += *ptr;
     }
 
     return val >> (7 - wri);
