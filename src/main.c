@@ -10,8 +10,8 @@
 char* wlb;
 char* wrb;
 
-int wli;
-int wri;
+int wli = 0;
+int wri = 0;
 
 int main(int argc, char *argv[]) {
 
@@ -56,71 +56,46 @@ int main(int argc, char *argv[]) {
     wlb = &memoryBlock[0];
     wrb = &memoryBlock[0];
 
-    wli = 0;
-    wri = 0;
-
     fp = fopen(argv[1], "r");
 
-    // This is given to the lexer for splitting into tokens
     while (1)
     {
-        if (feof(fp)) {
-            break;
-        }
-
         c = fgetc(fp);
 
+        if (c == '\0' || c == EOF) break;
         if (isspace(c)) continue;
 
-        // Comment
-        if (c == '"') {
-            readUntilChar('"', fp);
-            continue;
+        switch (c) {
+            case '"':
+                readUntilChar('"', fp);
+                break;
+            case '+':
+                incrementWindow(&wli, &wlb);
+                incrementWindow(&wri, &wrb);
+                break;
+            case '-':
+                decrementWindow(&wli, &wlb);
+                decrementWindow(&wri, &wrb);
+                break;
+            case '>':
+                incrementWindow(&wri, &wrb);
+                break;
+            case '<':
+                decrementWindow(&wri, &wrb);
+                break;
+            case '/':
+                setOrClearWindow(1);
+                break;
+            case '\\':
+                setOrClearWindow(0);
+                break;
+            case '@':
+                printf("%c", getWindowValue());
+                break;
+            default:
+                printf("\nUnrecognised character '%c' (%d)", c, c);
+                return EXIT_FAILURE;
         }
-
-        // Increment
-        if (c == '+') {
-            incrementWindow(&wli, &wlb);
-            incrementWindow(&wri, &wrb);
-        }
-
-        // Decrement
-        if (c == '-') {
-            decrementWindow(&wli, &wlb);
-            decrementWindow(&wri, &wrb);
-        }
-
-        // Expand
-        if (c == '>') {
-            incrementWindow(&wri, &wrb);
-        }
-
-        // Shrink
-        if (c == '<') {
-            decrementWindow(&wri, &wrb);
-        }
-
-        // Clear
-        if (c == '\\') {
-            setOrClearWindow(0);
-        }
-
-        // Set
-        if (c == '/') {
-            setOrClearWindow(1);
-        }
-        
-        // NOT (flip)
-        // if (c == '~') {
-        // }
-
-        // stdout
-        if (c == '@') {
-            charOut();
-        }
-
-        // printf("%c ", c);
-        // printWindow();
     }
 
     fclose(fp);
@@ -130,15 +105,11 @@ int main(int argc, char *argv[]) {
 
 void readUntilChar(char match, FILE *fp) {
     char current;
-    while(1) {
+    while(current = fgetc(fp) != match) {
         if (feof(fp)) {
             printf("\n\nEOF Reached!\nExpected to read a %c", match);
             exit(EXIT_FAILURE);
         }
-
-        current = fgetc(fp);
-
-        if (current == match) break;
     }
 }
 
@@ -165,23 +136,21 @@ void decrementWindow(int* index, char** byte) {
 }
 
 void setOrClearWindow(int set) {
-    //Set/Clear from window wlb[wli] : wrb[wri]
+    // Set/Clear from window wlb[wli] : wrb[wri]
     char* ptr = wlb;
 
     while (1) {
-        // printf("%p : [%p : %p]\n", ptr, wlb, wrb);
-
         if (ptr == wlb && ptr == wrb) {
             set ? setBits(ptr, wli, wri) : clearBits(ptr, wli, wri);
             break;
         }
 
-        if (ptr == wlb) {   // Only clear from index
+        if (ptr == wlb) {   // Only set/clear from index
             set ? setBits(ptr, wli, 7) : clearBits(ptr, wli, 7);
             continue;
         }
 
-        if (ptr == wrb) {   // Only clear upto index
+        if (ptr == wrb) {   // Only set/clear upto index
             set ? setBits(ptr, 0, wri) : clearBits(ptr, 0, wri);
             break;
         }
@@ -190,15 +159,9 @@ void setOrClearWindow(int set) {
 
         ptr++;
     }
-
-    // printWindowBytes();
 }
 
-void printWindow() {
-    printf("[%p:%d %p:%d] => [%x]\n", wlb, wli, wrb, wri, 0x00);
-}
-
-void charOut() {
+int getWindowValue() {
     char* ptr = wlb;
 
     int val = 0;
@@ -221,8 +184,7 @@ void charOut() {
 
     val >> (7 - wri);
 
-
-    printf("%c", val);
+    return val;
 }
 
 void setBits(char* byte, int from, int to) {
