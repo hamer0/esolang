@@ -114,40 +114,40 @@ void readUntilChar(char match, FILE *fp) {
 }
 
 void incrementWindow(int* index, char** byte) {
-    *index = (*index + 1) % 8;
-    if (*index == 0) (*byte)++;
+    *index = (*index + 1) % 8;                                      // increment index value (mod 8 to keep in range of a byte)
+    if (*index == 0) (*byte)++;                                     // if index is 0 (has been reset) then increment byte pointer
 }
 
 void decrementWindow(int* index, char** byte) {
-    (*index)--;
-    if (*index < 0) {
-        *index = 7;
-        (*byte)--;
+    (*index)--;                                                     // decrement index value
+    if (*index < 0) {                                               // if index value now < 0 ...
+        *index = 7;                                                 //  reset to 7
+        (*byte)--;                                                  //  decrement byte pointer
     }
 }
 
 void setOrClearWindow(int set) { // Set/Clear from window wlb[wli] : wrb[wri]
     int from, to;
-    for(char* ptr = wlb; ptr <= wrb; ptr++) {
-        from = 0;
+    for(char* ptr = wlb; ptr <= wrb; ptr++) {                       // iterate for each byte between left and right window pointers
+        from = 0;                                                   // default from/to is 0/7
         to = 7;
 
-        if (ptr == wlb) from = wli;
-        if (ptr == wrb) to = wri;
+        if (ptr == wlb) from = wli;                                 // if byte is left pointer from is the left pointer index
+        if (ptr == wrb) to = wri;                                   // if byte is right pointer (can be both) to is right pointer index
 
-        set ? setBits(ptr, from, to) : clearBits(ptr, from, to);
+        set ? setBits(ptr, from, to) : clearBits(ptr, from, to);    // set/clear bits between ranges
     }
 }
 
 int getWindowValue() {
-    int val = (*wlb & ~byteMask(0, wli));
+    int val = (*wlb & ~byteMask(0, wli));                           // initialise value to window left value from index 
 
-    for(char* ptr = wlb + 1; ptr <= wrb; ptr++) {
-        val << 8;
-        val += *ptr;
+    for(char* ptr = wlb + 1; ptr <= wrb; ptr++) {                   // iterate for each byte upto window right pointer
+        val << 8;                                                   // shift 1 byte left
+        val += *ptr;                                                // add the byte to the value
     }
 
-    return val >> (7 - wri);
+    return val >> (7 - wri);                                        // shift right to remove excess upto index in right window byte
 }
 
 void setBits(char* byte, int from, int to) {
