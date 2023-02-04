@@ -140,7 +140,7 @@ void setOrClearWindow(int set) { // Set/Clear from window wlb[wli] : wrb[wri]
 }
 
 int getWindowValue() {
-    int val = (*wlb & ~byteMask(0, wli));                           // initialise value to window left value from index 
+    int val = (*wlb & ~byteMask(0, wli));                           // initialise value with byte AND byte mask to get the correct bits from index
 
     for(char* ptr = wlb + 1; ptr <= wrb; ptr++) {                   // iterate for each byte upto window right pointer
         val << 8;                                                   // shift 1 byte left
