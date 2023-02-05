@@ -26,13 +26,8 @@ SkipPairList blocks;
 SkipPairList loopBlocks;
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) { // Validate against too few args
+    if (argc != 2) { // Validate against too few args
         printf("\n\nToo few arguments!\nUsage: %s <filepath>", EXE);
-        return EXIT_FAILURE;
-    }
-
-    if (argc > 2) { // Validate against too many args
-        printf("\n\nToo many arguments!\nUsage: %s <filepath>", EXE);
         return EXIT_FAILURE;
     }
 
