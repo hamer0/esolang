@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -c -std=c99 -g
+CFLAGS = -c -std=c99 -g -I include
 LDFLAGS = -g
 SRC = $(wildcard src/*.c)
 HDR = $(wildcard include/*.h)
@@ -14,4 +14,7 @@ $(EXEC): $(OBJ)
 %.o: %.c $(HDR)
 	$(CC) $(CFLAGS) $< -o $@
 
-clean: rd /s /q src/*.o $(EXEC)
+clean:
+	rm -f $(OBJ) $(EXEC)
+
+re: clean all
