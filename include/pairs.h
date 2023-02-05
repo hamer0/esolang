@@ -16,5 +16,6 @@ typedef struct {
 
 SkipPairList skipPairList_create();
 void skipPairList_add(SkipPairList* list, SkipPair pair);
+void skipPairList_print(SkipPairList list);
 
 #endif

@@ -28,3 +28,9 @@ void skipPairList_add(SkipPairList* list, SkipPair pair) {
 
     list->pairs[list->size++] = pair;
 }
+
+void skipPairList_print(SkipPairList list) {
+    for(int i=0; i<list.size; i++) {
+        printf("[%d:%d]\n", list.pairs[i].start, list.pairs[i].end);
+    }
+}

@@ -19,6 +19,8 @@ char* wrb;
 int wli = 0;
 int wri = 0;
 
+char STATUS;  // byte for flagging status. [ x | x | x | x | x | x | x | ERROR ] 
+
 SkipPairList comments;
 SkipPairList blocks;
 SkipPairList loopBlocks;
@@ -29,7 +31,6 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    
     if (argc > 2) { // Validate against too many args
         printf("\n\nToo many arguments!\nUsage: %s <filepath>", EXE);
         return EXIT_FAILURE;
@@ -50,9 +51,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    char c;
     char memoryBlock[] = {0x00, 0x00, 0x00, 0x00};
-
     wlb = &memoryBlock[0];
     wrb = &memoryBlock[0];
 
@@ -63,24 +62,15 @@ int main(int argc, char *argv[]) {
     blocks = pairMatchingChars('{', '}');
     loopBlocks = pairMatchingChars('(', ')');
 
-    for(int i=0; i<comments.size; i++) {
-        printf("Pair at %d:%d\n", comments.pairs[i].start, comments.pairs[i].end);
-    }
+    if (STATUS &= STATUS_ERROR) exit(EXIT_FAILURE);
 
     // Interpret step
-    fseek(fp, 0, SEEK_SET);
-
-    while (1)
+    for (char c = nextChar(); c != EOF; c = nextChar())
     {
-        c = nextChar();
-
-        if (c == '\0' || c == EOF) break;
         if (isspace(c)) continue;
+        if (c == '{' || c == '(') continue;
 
         switch (c) {
-            case '"':
-                readUntilChar('"');
-                break;
             case '>':
                 shiftWindow(&wli, &wlb, 1);
                 shiftWindow(&wri, &wrb, 1);
@@ -103,8 +93,13 @@ int main(int argc, char *argv[]) {
             case '@':
                 printf("%c", getWindowValue());
                 break;
+            case '}':
+                break;
+            case ')':
+                jumpBack(loopBlocks, ftell(fp) - 1);
+                break;
             default:
-                printf("\nUnrecognised character '%c' (%d)", c, c);
+                printf("Syntax Error!\nUnexpected symbol '%c' (%d)", c, c);
                 return EXIT_FAILURE;
         }
     }
@@ -114,18 +109,14 @@ int main(int argc, char *argv[]) {
 }
 
 char nextChar() {
-    char c = fgetc(fp);
-    return c;
-}
-
-void readUntilChar(char match) {
-    char current;
-    while(current = nextChar() != match) {
-        if (feof(fp)) {
-            printf("\n\nEOF Reached!\nExpected to read a %c", match);
-            exit(EXIT_FAILURE);
+    for (int i=0; i<comments.size; i++) {
+        if (ftell(fp) == comments.pairs[i].start) {
+            fseek(fp, comments.pairs[i].end + 1, SEEK_SET);
+            break;
         }
     }
+
+    return fgetc(fp);
 }
 
 void shiftWindow(int* index, char** byte, int direction) {
@@ -164,19 +155,36 @@ int getWindowValue() {
 }
 
 SkipPairList pairMatchingChars(char open, char close) { // saves the indexes of matching chars given the open and close char e.g. {} () ""
-    fseek(fp, 0, SEEK_SET);
-
     SkipPairList list = skipPairList_create();
     emptyStack();
 
     for (char c = fgetc(fp); c != EOF; c = fgetc(fp)) {
         if (c == open || c == close) pushStack(c, ftell(fp) - 1);
-        if(checkStackPair(open, close)) { // if top 2 items match
+        if(checkStackPair(open, close)) {
             StackNode* closeNode = popStack();
             StackNode* openNode = popStack();
             skipPairList_add(&list, (SkipPair){openNode->index, closeNode->index});
         }
     }
 
+    while (!isStackEmpty()) {
+        StackNode* node = popStack();
+        printf("Syntax Error!\n'%c' is not closed!\n", node->c);
+        STATUS |= STATUS_ERROR;
+    }
+
+    fseek(fp, 0, SEEK_SET);
     return list;
+}
+
+void jumpBack(SkipPairList list, int from) {    
+    for(int i=0; i< list.size; i++) {
+        if (list.pairs[i].end == from) {
+            fseek(fp, list.pairs[i].start, SEEK_SET);
+            return;
+        }
+    }
+
+    printf("Jump Error!\nNo jump back could be found for %d in list", from);
+    exit(EXIT_FAILURE);
 }

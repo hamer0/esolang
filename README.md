@@ -21,10 +21,12 @@ A goal of this language is to make the interpreter small without making it unrea
 - [ ] `#` output binary
 - [x] `?` skip next char if window = 0
 
-- [ ] `(` loop block begin
-- [ ] `)` loop block end
+- [x] `(` loop block begin
+- [x] `)` loop block end
 - [ ] `{` block begin
 - [ ] `}` block end
+  
+- [x] `"  "` comment
 
 ## Window
 

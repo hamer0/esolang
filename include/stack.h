@@ -16,5 +16,6 @@ StackNode* popStack();
 void popStackPair();
 
 int checkStackPair(char open, char close);
+int isStackEmpty();
 
 #endif

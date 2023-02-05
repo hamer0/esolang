@@ -57,3 +57,7 @@ void popStackPair() {
 int checkStackPair(char open, char close) {
     return (stackPtr-1)->c == close && (stackPtr-2)->c == open;
 }
+
+int isStackEmpty() {
+    return stackPtr == &stack[0];
+}
