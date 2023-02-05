@@ -1,7 +1,7 @@
 #ifndef main_h
 #define main_h
 
-#include "../include/pairs.h"
+#include "pairs.h"
 
 #define EXT ".zxb1"
 #define EXE "zxb1"

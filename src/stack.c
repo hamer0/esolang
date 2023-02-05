@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "../include/stack.h"
+#include "stack.h"
 
 StackNode stack[MAX_STACK];
 StackNode* stackPtr = &stack[0];

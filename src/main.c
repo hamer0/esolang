@@ -4,10 +4,10 @@
 #include <sys/stat.h>
 #include <ctype.h>
 
-#include "../include/main.h"
-#include "../include/strutil.h"
-#include "../include/stack.h"
-#include "../include/pairs.h"
+#include "main.h"
+#include "strutil.h"
+#include "stack.h"
+#include "pairs.h"
 
 #define byteMask(from, to) ((0xff >> from) & ~(0xff >> (to + 1)))   // mask of 1s between given value
 
@@ -147,7 +147,7 @@ int getWindowValue() {
     int val = (*wlb & byteMask(wli, 7));                            // Get value of the bits in the left byte from the index
 
     for(char* ptr = wlb + 1; ptr <= wrb; ptr++) {                   // iterate for each byte upto window right pointer
-        val << 8;                                                   // shift 1 byte left
+        val <<= 8;                                                   // shift 1 byte left
         val += *ptr;                                                // add the byte to the value
     }
 

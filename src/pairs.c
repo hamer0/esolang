@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "../include/pairs.h"
+#include "pairs.h"
 
 SkipPairList skipPairList_create() {
     SkipPairList list;
